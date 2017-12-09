@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Components/InputComponent.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Grab.generated.h"
 
@@ -26,5 +28,24 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 private:
+	//Raycast and grab what's in reach
+	void Grab();
+
+	void FindPhysicsHandleComponent();
+	void SetupInputComponent();
+
+	//Release what is grabbed
+	void Release();
+
+	// Return hit for first physics body in reach
+	const FHitResult GetFirstPhysicsBodyInReach();
+
 	float Reach = 100.f;
+	UPhysicsHandleComponent* PhysicsHandle = nullptr;
+	UInputComponent* PawnInput = nullptr;
+	FHitResult Hit;
+	FVector PlayerViewpointLocation;
+	FRotator PlayerViewpointRotation;
+	FVector LineTraceEnd;
+	AActor* ActorHit;
 };

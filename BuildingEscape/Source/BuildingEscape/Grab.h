@@ -40,12 +40,14 @@ private:
 	// Return hit for first physics body in reach
 	const FHitResult GetFirstPhysicsBodyInReach();
 
+	//Returns current end of Reach line
+	FVector GetReachLineEnd();
+
 	float Reach = 100.f;
 	UPhysicsHandleComponent* PhysicsHandle = nullptr;
 	UInputComponent* PawnInput = nullptr;
 	FHitResult Hit;
 	FVector PlayerViewpointLocation;
 	FRotator PlayerViewpointRotation;
-	FVector LineTraceEnd;
-	AActor* ActorHit;
+	AActor* ActorHit = nullptr;
 };

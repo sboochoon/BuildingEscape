@@ -30,11 +30,7 @@ void UGrab::FindPhysicsHandleComponent()
 {
 	//Look for attached Physics Handle
 	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
-	if (PhysicsHandle)
-	{
-
-	}
-	else
+	if (PhysicsHandle == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s PhysicsHandle Component Missing From Actor"), *GetOwner()->GetName());
 	}
@@ -62,9 +58,13 @@ void UGrab::Grab()
 
 	//Try and reach any actors with physics body collision channel set
 	auto GetHitResult = GetFirstPhysicsBodyInReach();
+
 	auto ComponentToGrab = GetHitResult.GetComponent();
-	//If we hit somethin then attach a physics handle
+
+	//If we hit something then attach a physics handle
+	if (!ActorHit) { return; }
 	ActorHit = GetHitResult.GetActor();
+	if (!PhysicsHandle) { return; }
 	if (ActorHit)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Actor Hit: %s"), *ActorHit->GetName());
@@ -76,7 +76,8 @@ void UGrab::Release()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grab Released"));
 
-	//TODO release physics handle
+	//release physics handle
+	if (!PhysicsHandle) { return; }
 	PhysicsHandle->ReleaseComponent();
 }
 
@@ -85,39 +86,40 @@ void UGrab::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentT
 {
 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	//get the player viewpoint
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(OUT PlayerViewpointLocation, OUT PlayerViewpointRotation);
 
-	//Draw a red trace in the world to visualize
-	LineTraceEnd = PlayerViewpointLocation + (PlayerViewpointRotation.Vector()*Reach);
+	if (!PhysicsHandle) { return; }
 
 	if (PhysicsHandle->GrabbedComponent)
 	{
-		PhysicsHandle->SetTargetLocation(LineTraceEnd);
+		PhysicsHandle->SetTargetLocation(GetReachLineEnd());
 	}
 	// ...
 }
 
 const FHitResult UGrab::GetFirstPhysicsBodyInReach()
 {
-	//get the player viewpoint
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(OUT PlayerViewpointLocation, OUT PlayerViewpointRotation);
-
-	//Draw a red trace in the world to visualize
-	LineTraceEnd = PlayerViewpointLocation + (PlayerViewpointRotation.Vector()*Reach);
-
+	
 	//raycast to reach distance
 	FCollisionQueryParams TraceParams(FName(TEXT("")), false, GetOwner());
 
 	GetWorld()->LineTraceSingleByObjectType(
 		OUT Hit,
 		PlayerViewpointLocation,
-		LineTraceEnd,
+		GetReachLineEnd(),
 		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
 		TraceParams
 	);
 
 	//see what we hit
 	return Hit;
+}
+
+FVector UGrab::GetReachLineEnd()
+{
+	//get the player viewpoint
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(OUT PlayerViewpointLocation, OUT PlayerViewpointRotation);
+
+	//Draw a red trace in the world to visualize
+	return PlayerViewpointLocation + (PlayerViewpointRotation.Vector()*Reach);
 }
 

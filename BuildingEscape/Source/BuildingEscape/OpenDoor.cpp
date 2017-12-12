@@ -23,24 +23,15 @@ void UOpenDoor::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	//ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
+	
+	//Get this door
 	Owner = GetOwner();
+
+	//Door does not have a PressurePlate object assigned
 	if (!PressurePlate)
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s Missing PressurePlate"), *Owner->GetName());
 	}
-}
-
-void UOpenDoor::OpenDoor()
-{
-	Owner->SetActorRotation(FRotator(0.f, OpenAngle, 0.f));
-	bIsDoorOpen = true;
-}
-
-void UOpenDoor::CloseDoor()
-{
-	Owner->SetActorRotation(FRotator(0.f, CloseAngle, 0.f));
-	bIsDoorOpen = false;
 }
 
 
@@ -52,25 +43,19 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	/*float testMass = GetTotalMassOfActorsOnPlate();
 	UE_LOG(LogTemp, Warning, TEXT("Mass in volume: %f "), testMass);*/
 
-	// ...
-	//Poll the trigger volume
+
+	//Poll the trigger volume to see if the mass inside is enough, if it is then open the door, else close it
 	if (GetTotalMassOfActorsOnPlate() >= MassToTriggerDoorOpen)
 	{
-		
-		//If the ActorThatOpens is in the volume
-		OpenDoor();
-		LastDoorOpenTime = GetWorld()->GetTimeSeconds();
+		OnOpenRequest.Broadcast();
 	}
-
-	if (bIsDoorOpen)
+	else
 	{
-		if (GetWorld()->GetTimeSeconds() > (LastDoorOpenTime + DoorCloseDelay))
-		{
-			CloseDoor();
-		}
+		OnCloseRequest.Broadcast();
 	}
 }
 
+///Return total mass of actors that have overlap events checked
 float UOpenDoor::GetTotalMassOfActorsOnPlate()
 {
 	float TotalMass = 0.f;

@@ -62,9 +62,9 @@ void UGrab::Grab()
 	auto ComponentToGrab = GetHitResult.GetComponent();
 
 	//If we hit something then attach a physics handle
-	if (!ActorHit) { return; }
 	ActorHit = GetHitResult.GetActor();
 	if (!PhysicsHandle) { return; }
+	if (!ActorHit) { return; }
 	if (ActorHit)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Actor Hit: %s"), *ActorHit->GetName());
